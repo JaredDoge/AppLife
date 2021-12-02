@@ -1,0 +1,3 @@
+include ':applife'
+include ':app'
+rootProject.name = "AppLife"
