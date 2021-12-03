@@ -3,7 +3,6 @@ package com.jared.applife
 import android.app.Activity
 import android.app.Application
 import android.os.Bundle
-import android.util.Log
 import androidx.lifecycle.*
 import androidx.lifecycle.ProcessLifecycleOwner
 import java.lang.ref.WeakReference
@@ -11,7 +10,7 @@ import java.util.*
 import kotlin.collections.ArrayList
 
 
-internal class LifeImpl2(private val application:Application) :  Application.ActivityLifecycleCallbacks, Life,DefaultLifecycleObserver {
+internal class LifeImpl2(private val application:Application) :  Application.ActivityLifecycleCallbacks, Life,LifecycleObserver {
 
 
 
@@ -32,6 +31,14 @@ internal class LifeImpl2(private val application:Application) :  Application.Act
         curResumeActivityWeak?.clear()
     }
 
+    override fun onActivityResumed(activity: Activity) {
+        curResumeActivityWeak = WeakReference(activity)
+    }
+
+    override fun getTopActivity(): Activity? {
+        return curResumeActivityWeak?.get()
+    }
+
     override fun onActivityCreated(p0: Activity, p1: Bundle?) {
     }
 
@@ -39,9 +46,6 @@ internal class LifeImpl2(private val application:Application) :  Application.Act
     }
 
 
-    override fun onActivityResumed(activity: Activity) {
-        curResumeActivityWeak = WeakReference(activity)
-    }
 
     override fun onActivityPaused(p0: Activity) {
     }
@@ -56,9 +60,6 @@ internal class LifeImpl2(private val application:Application) :  Application.Act
     }
 
 
-    override fun getTopActivity(): Activity? {
-        return curResumeActivityWeak?.get()
-    }
 
     override fun isTopActivity(activity: Activity): Boolean =getTopActivity()==activity
 
@@ -75,16 +76,15 @@ internal class LifeImpl2(private val application:Application) :  Application.Act
         callbacks.remove(callback)
     }
 
-    override fun onStart(owner: LifecycleOwner) {
-        super.onStart(owner)
+   @OnLifecycleEvent(Lifecycle.Event.ON_START)
+   fun onStart() {
         for(call in callbacks){
             call.appToForeground()
         }
     }
 
-
-    override fun onStop(owner: LifecycleOwner) {
-        super.onStop(owner)
+    @OnLifecycleEvent(Lifecycle.Event.ON_STOP)
+   fun onStop() {
         for(call in callbacks){
             call.appToBackground()
         }
